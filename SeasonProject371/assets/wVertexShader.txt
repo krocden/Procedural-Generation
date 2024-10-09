@@ -1,0 +1,59 @@
+#version 330 core
+
+layout (location = 0) in vec3 attributePosition;
+
+struct Wave {
+    float Q;
+    float A;
+    float l;
+    float s;
+    vec2 D;
+};
+
+out vec4 fragPos;
+out vec3 fragNormal;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+uniform float currentTime;
+uniform int waveCount;
+uniform Wave waves[10];
+
+uniform bool isFrozen;
+
+void main()
+{
+    vec3 position = attributePosition;
+    vec3 positionFrozen = attributePosition;
+    float x = position.x;
+    float y = position.z;
+
+    for (int i = 0; i < waveCount; ++i) {
+        float w = 2 * 3.14 * (1 / waves[i].l);
+        float inc = 2 * 3.14 * waves[i].s * (1 / waves[i].l);
+        position.x += waves[i].Q * waves[i].A * waves[i].D.x * cos(dot(waves[i].D, vec2(x, y)) * w + inc * currentTime);
+        position.y += waves[i].A * sin(dot(waves[i].D, vec2(x, y)) * w + inc * currentTime);
+        position.z += waves[i].Q * waves[i].A * waves[i].D.y * cos(dot(waves[i].D, vec2(x, y)) * w + inc * currentTime);
+    }
+
+    fragNormal = vec3(0.0, 1.0, 0.0);
+
+    for (int i = 0; i < waveCount; ++i) {
+        float w = 2 * 3.14 * (1 / waves[i].l);
+        float inc = 2 * 3.14 * waves[i].s * (1 / waves[i].l);
+        fragNormal.x += (-waves[i].D.x) * w * waves[i].A * cos(dot(waves[i].D, vec2(x, y)) * w + inc * currentTime);
+        fragNormal.y -= waves[i].Q * w * waves[i].A * sin(dot(waves[i].D, vec2(x, y)) * w + inc * currentTime);
+        fragNormal.z += (-waves[i].D.y) * w * waves[i].A * cos(dot(waves[i].D, vec2(x, y)) * w + inc * currentTime);
+    }
+
+    if (isFrozen) {
+        fragPos = model * vec4(attributePosition, 1.0);
+        fragNormal = vec3(0.0, 1.0, 0.0);
+        gl_Position = projection * view * model * vec4(attributePosition, 1.0);
+    } else { 
+        fragPos = model * vec4(position, 1.0);
+        fragNormal = mat3(transpose(inverse(model))) * fragNormal;
+        gl_Position = projection * view * model * vec4(position, 1.0);
+    }
+}
