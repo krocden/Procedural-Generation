@@ -15,7 +15,7 @@ Using OpenGL and C++
 Project executable under 
 
 	-> SeasonProject371.zip
-		-> SeasonProject371
-			-> x64
-				-> Release
-					-> SeasonProject371.exe
+	   -> SeasonProject371
+	      -> x64
+	         -> Release
+	            -> SeasonProject371.exe
