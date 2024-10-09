@@ -1,0 +1,48 @@
+#version 330 core
+layout (location = 0) in vec3 attributePosition;
+layout (location = 1) in vec3 attributeNormal;
+layout (location = 2) in vec3 attributeColor;
+
+flat out vec3 flatColor;
+out vec3 Color;
+
+uniform vec3 viewPosition;
+
+uniform vec3 ambient;
+uniform vec3 diffuse;
+uniform vec3 specular;
+uniform vec3 incLightDirection;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+vec3 phong(vec3 incNormal, vec3 fragPos) {
+
+    vec3 normal = normalize(incNormal);
+    vec3 lightDirection = normalize(-incLightDirection);
+
+    vec3 ambientColor = ambient;
+    float diffuseAcc = max(dot(lightDirection, normal), 0.0);
+    vec3 diffuseColor = diffuse * diffuseAcc;
+
+    vec3 viewDirection = normalize(viewPosition - fragPos);
+    vec3 reflectDirection = reflect(-lightDirection, incNormal);
+
+    float specularAcc = pow(max(dot(viewDirection, lightDirection), 0.0), 2);
+    vec3 specularColor = specular * specularAcc;
+    
+    return (ambientColor + diffuseColor + specularColor);
+}
+
+void main() {
+    vec3 fragPos = vec3(model * vec4(attributePosition, 1.0));
+    vec3 normal = attributeNormal;
+
+    vec3 incomingLighting = phong(normal, fragPos);
+
+    Color = attributeColor * incomingLighting;
+    flatColor = Color;
+    
+    gl_Position = projection * view * model * vec4(attributePosition, 1.0);
+}
